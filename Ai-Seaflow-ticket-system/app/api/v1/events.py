@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, status, HTTPException
+from fastapi import APIRouter, Request, Depends, status, HTTPException, Response
 from app.schema.events import EventCreate, EventResponse, EventUpdate
 from uuid import uuid4,UUID
 # from logging import getLogger
@@ -12,7 +12,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-router = APIRouter(prefix="/events", tags=["events"])
+router = APIRouter(prefix="/api/v1/events", tags=["events"])
 
 event_store: dict[UUID, EventResponse] = {}
 
@@ -45,7 +45,7 @@ async def get_event(event_id: UUID) -> EventResponse:
 
 
 
-@router.put("/{event_id}/update", response_model=EventResponse)
+@router.put("/{event_id}", response_model=EventResponse)
 async def update_event(event_id: UUID , payload: EventCreate) -> EventResponse:
     if not event_id in event_store:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
@@ -60,7 +60,7 @@ async def update_event(event_id: UUID , payload: EventCreate) -> EventResponse:
     return updated_event
     
 
-@router.patch("/{event_id}/update" , response_model=EventResponse)
+@router.patch("/{event_id}" , response_model=EventResponse)
 def update_event_partial(event_id: UUID , payload: EventUpdate) -> EventResponse:
     
     current_event = event_store.get(event_id)
@@ -78,9 +78,9 @@ def update_event_partial(event_id: UUID , payload: EventUpdate) -> EventResponse
     return updated_event
     
     
-@router.delete("/{event_id}/delete", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_event(event_id: UUID) -> None:
+@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_event(event_id: UUID) -> Response:
     if not event_id in event_store:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
     del event_store[event_id]
-    return None
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
