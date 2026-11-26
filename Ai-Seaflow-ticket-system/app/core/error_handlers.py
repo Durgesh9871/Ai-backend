@@ -13,6 +13,8 @@ def register_exception_handlers(app: FastAPI) -> None:
         error_codes = {
             404: "RESOURCE_NOT_FOUND",
             409: "CONFLICT",
+            401: "UNAUTHENTICATED",
+            403: "FORBIDDEN",
         }
 
         return JSONResponse(

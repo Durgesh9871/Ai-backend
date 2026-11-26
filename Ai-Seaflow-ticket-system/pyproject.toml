@@ -5,6 +5,7 @@ description = "AI-powered ticket management system for Seaflow"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "email-validator>=2.4.0",
     "fastapi>=0.162.7",
     "pwdlib[argon2]>=0.4.2",
     "pydantic>=2.14.3",

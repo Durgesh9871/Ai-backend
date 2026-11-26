@@ -3,8 +3,8 @@ from fastapi import FastAPI
 from app.api.health import router as health_router
 from app.api.v1.events import router as events_router
 from app.core.error_handlers import register_exception_handlers
-
-
+from app.auth.router import router as auth_router
+from app.users.router import router as users_router
 
 app = FastAPI(
     title="AI SeatFlow Ticket System",
@@ -13,6 +13,8 @@ app = FastAPI(
 
 register_exception_handlers(app)
 
-
+    
 app.include_router(health_router)
 app.include_router(events_router)
+app.include_router(auth_router)
+app.include_router(users_router)

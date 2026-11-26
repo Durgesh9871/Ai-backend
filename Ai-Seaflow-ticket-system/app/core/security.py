@@ -1,20 +1,57 @@
+from datetime import datetime, timedelta, timezone
+from uuid import UUID, uuid4
+
+import jwt
+from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 
+from app.core.config import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    JWT_ALGORITHM,
+    JWT_SECRET_KEY,
+)
 
 
-hasher = PasswordHash.recommended()
+password_hasher = PasswordHash.recommended()
 
 
-def password_hash(password: str) -> str:
-    return hasher.hash(password)
+def hash_password(password: str) -> str:
+    return password_hasher.hash(password)
 
 
-def password_verify(password: str, hashed_password: str) -> bool:
-    return hasher.verify(password, hashed_password)
+def verify_password(password: str, hashed_password: str) -> bool:
+    return password_hasher.verify(password, hashed_password)
 
 
-hashed = password_hash("secret123")
+def create_access_token(user_id: UUID) -> str:
+    now = datetime.now(timezone.utc)
 
-assert hashed != "secret123"
-assert password_verify("secret123", hashed)
-assert not password_verify("wrong-password", hashed)
+    payload = {
+        "sub": str(user_id),
+        "type": "access",
+        "iat": now,
+        "exp": now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        "jti": str(uuid4()),
+    }
+
+    return jwt.encode(
+        payload,
+        JWT_SECRET_KEY,
+        algorithm=JWT_ALGORITHM,
+    )
+
+
+def decode_access_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(
+            token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+        )
+    except InvalidTokenError as error:
+        raise ValueError("Invalid or expired access token") from error
+
+    if payload.get("type") != "access":
+        raise ValueError("Invalid token type")
+
+    return payload
